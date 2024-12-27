@@ -19,10 +19,9 @@ License MIT
         factory(jQuery, window, document);
     }
 }(function ($, window, document, undefined) {
-    /*</iife_head>*/
-    // Can't use ECMAScript 5's strict mode because several apps 
-    // including ASP.NET trace the stack via arguments.caller.callee 
-    // and Firefox dies if you try to trace through "use strict" call chains. 
+    // Can't use ECMAScript 5's strict mode because several apps
+    // including ASP.NET trace the stack via arguments.caller.callee
+    // and Firefox dies if you try to trace through "use strict" call chains.
     // See jQuery issue (#13335)
     // Support: Firefox 18+
     //"use strict";
@@ -120,7 +119,7 @@ License MIT
         },
         // Marks the element(s) and any helpers within the element not dirty.
         // If all of the fields in a form are marked not dirty, the form itself will be marked not dirty even
-        // if it is not included in the selector. Also resets original values to the current state - 
+        // if it is not included in the selector. Also resets original values to the current state -
         // essentially "forgetting" the node or its descendants are dirty.
         setClean: function (excludeIgnored, excludeHelpers) {
             dirtylog('setClean called');
@@ -440,18 +439,29 @@ License MIT
     var setFieldStatus = function ($field, ignoreSelector) {
         if (isFieldIgnored($field, ignoreSelector)) return;
 
+        var $form = $field.parents('form'),
+            name = $field.attr('name'),
+            dirty = false;
+
         // Option groups are a special case because they change more than the current element.
         if ($field.is(':radio[name]')) {
-            var name = $field.attr('name'),
-                $form = $field.parents('form');
-
             $form.find(":radio[name='" + name + "']").each(function () {
-                var $radio = $(this);
-                setDirtyStatus($radio, isFieldDirty($radio, ignoreSelector));
+                var $radio = $(this),
+                    fieldDirty = isFieldDirty($radio, ignoreSelector);
+                if (fieldDirty) dirty = true;
+                setDirtyStatus($radio, fieldDirty);
             });
         } else {
-            setDirtyStatus($field, isFieldDirty($field, ignoreSelector));
+            var fieldDirty = isFieldDirty($field, ignoreSelector);
+            if (fieldDirty) dirty = true;
+            setDirtyStatus($field, fieldDirty);
         }
+
+        $form.trigger('changed.dirtyforms', {
+            id: $field.attr('id'),
+            name,
+            dirty,
+        });
     };
 
     var setDirtyStatus = function ($field, isDirty) {
@@ -608,6 +618,4 @@ License MIT
     };
     /*</log>*/
 
-    /*<iife_foot>*/
 }));
-/*</iife_foot>*/
